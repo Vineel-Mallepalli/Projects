@@ -7,6 +7,8 @@ To-Do list for reference:
 - write test code for each method in board
 - create test code for moves by each piece in different given boards
        - code to make sure board recognizes check and checkmate
+- write __str__ methods for pieces, board, game for testing
+- write chess_notation_to_arr(tup) and arr_to_chess_notation(tup) methods for ease
 
 
 

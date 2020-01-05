@@ -5,9 +5,7 @@ from collections import Counter
 
 # need some way to track game state. normal, check, checkmate.
 
-# redo this method. Use Counter to count type of piece (separate by color) and store
-# a dict of how many pieces of each color exist with the board. Then use that to calc score.
-# tldr; reconfigure to use get_counts() to calc_score.
+# use dict of how many pieces of each color exist with the board to calc score.
 def calc_score(counts):
     if counts == constants.START_COUNTS:
         return 0
@@ -61,6 +59,7 @@ def get_pieces(arr):
     return white_pieces, black_pieces
 
 
+# Use to categorize every piece by color and type
 def type_to_str(piece):
     color = "black"
     if not isinstance(piece, rook.Piece):
@@ -83,7 +82,7 @@ def type_to_str(piece):
         return TypeError
 
 
-# make 2 is_valid: second one checks counts.
+# make 2 is_valid: second one checks counts
 def validate_board(arr):
     # make sure: the board is 8x8
     # every square is either a Piece, or ""
@@ -110,6 +109,7 @@ def validate_board(arr):
     return True
 
 
+# make sure num of each type does not exceed maximum possible
 def validate_counts(counts):
     # for each color: max 1 king, max 8 pawns
     if counts["white"]["king"] > 1 or counts["black"]["king"] > 1:
@@ -118,15 +118,18 @@ def validate_counts(counts):
     return True
 
 
+# empty the board
 def clear():
     return Board([["" for _ in range(8)] for __ in range(8)])
 
 
+# return the starting board, equivalent to starting a new game
 def reset():
     return Board(constants.START_BOARD)
     # board [fir][sec]: fir = 8 - y; sec = x - 1
 
 
+# if legal, move the piece selected to the square and return resulting board
 def move(board, piece, square):
     # INPUTS: board, piece (BUT turn-based), square to move the piece to
     # OUTPUT: new board instance with the resulting movement.
@@ -159,23 +162,184 @@ def move(board, piece, square):
                     return board
                 if (square.x, square.y) not in piece.get_valid_moves:
                     return board
-                if isinstance(piece, queen.Queen) or isinstance(piece, bishop.Bishop) or isinstance(piece, pawn.Pawn) or isinstance(piece, rook.Rook):
-                    is_obstructed(piece, pieces, square)
+                if isinstance(piece, queen.Queen) or isinstance(piece, bishop.Bishop) \
+                        or isinstance(piece, pawn.Pawn) or isinstance(piece, rook.Rook):
                     # check for Check. see if opposing color pieces are attacking current color king after move.
                     is_pinned(board, pieces)
-
+                    # UNFINISHED. WORK ON after keeping track of obstructing pieces and attacked squares.
     pass
 
 
-def is_obstructed(piece, pieces, square):
+# check if a piece is pinned
+def is_pinned(new_board, piece, square, pieces):
+    # if is pinned, can move along direction of check. easiest way. If move is possible, check for Check in new board.
+    # before calling, move piece to requested square. pass new board in as parameter
+    # Assumption: we have already checked that the piece can physically move to the square.
+    # Now, we check if own king is in attacked squares.
     pass
 
 
-def is_pinned(board, piece, squares, pieces):
-    # if is pinned, can still move along direction of check
-    pass
+# get list of squares attacked by a rook, taking into account other pieces on the board
+def get_rook_attacked_squares(board, piece):
+    if not isinstance(piece, rook.Rook) and not isinstance(piece, queen.Queen):
+        return TypeError
+    attacked_squares = []
+    color = "white" if piece.color == "white" else "black"
+    other_color = "white" if color == "black" else "black"
+
+    # check squares to the right
+    x_inc = 1
+    while piece.x + x_inc <= 8:
+        if (piece.x + x_inc, piece.y) in board.locations.get(color):
+            break
+        elif (piece.x + x_inc, piece.y) in board.locations.get(other_color):
+            attacked_squares.append((piece.x + x_inc, piece.y))
+            break
+        else:
+            attacked_squares.append((piece.x + x_inc, piece.y))
+            x_inc += 1
+
+    # check squares to the left
+    x_dec = 1
+    while piece.x - x_dec >= 1:
+        if (piece.x - x_dec, piece.y) in board.locations.get(color):
+            break
+        elif (piece.x - x_dec, piece.y) in board.locations.get(other_color):
+            attacked_squares.append((piece.x - x_dec, piece.y))
+            break
+        else:
+            attacked_squares.append((piece.x - x_dec, piece.y))
+            x_dec += 1
+
+    # check squares above
+    y_inc = 1
+    while piece.y + y_inc <= 8:
+        if (piece.x, piece.y + y_inc) in board.locations.get(color):
+            break
+        elif (piece.x, piece.y + y_inc) in board.locations.get(other_color):
+            attacked_squares.append((piece.x, piece.y + y_inc))
+            break
+        else:
+            attacked_squares.append((piece.x, piece.y + y_inc))
+            y_inc += 1
+
+    # check squares below
+    y_dec = 1
+    while piece.y - y_dec >= 1:
+        if (piece.x, piece.y - y_dec) in board.locations.get(color):
+            break
+        elif (piece.x, piece.y - y_dec) in board.locations.get(other_color):
+            attacked_squares.append((piece.x, piece.y - y_dec))
+            break
+        else:
+            attacked_squares.append((piece.x, piece.y - y_dec))
+            y_dec += 1
+
+    return attacked_squares
 
 
+# get list of squares attacked by a bishop, taking into account other pieces on the board
+def get_bishop_attacked_squares(board, piece):
+    if not isinstance(piece, bishop.Bishop) and not isinstance(piece, queen.Queen):
+        return TypeError
+    attacked_squares = []
+    color = "white" if piece.color == "white" else "black"
+    other_color = "white" if color == "black" else "black"
+
+    # find first quadrant moves
+    xy_inc = 1
+    while piece.x + xy_inc <= 8 and piece.y + xy_inc <= 8:
+        if (piece.x + xy_inc, piece.y + xy_inc) in board.locations.get(color):
+            break
+        elif (piece.x + xy_inc, piece.y + xy_inc) in board.locations.get(other_color):
+            attacked_squares.append((piece.x + xy_inc, piece.y + xy_inc))
+            break
+        else:
+            attacked_squares.append((piece.x + xy_inc, piece.y + xy_inc))
+            xy_inc += 1
+
+    # find second quadrant moves
+    x_dec_y_inc = 1
+    while piece.x - x_dec_y_inc >= 1 and piece.y + x_dec_y_inc <= 8:
+        if (piece.x - x_dec_y_inc, piece.y + x_dec_y_inc) in board.locations.get(color):
+            break
+        elif (piece.x - x_dec_y_inc, piece.y + x_dec_y_inc) in board.locations.get(other_color):
+            attacked_squares.append((piece.x - x_dec_y_inc, piece.y + x_dec_y_inc))
+            break
+        else:
+            attacked_squares.append((piece.x - x_dec_y_inc, piece.y + x_dec_y_inc))
+            x_dec_y_inc += 1
+
+    # find third quadrant moves
+    x_inc_y_dec = 1
+    while piece.x + x_inc_y_dec <= 8 and piece.y - x_inc_y_dec >= 1:
+        if (piece.x + x_inc_y_dec, piece.y - x_inc_y_dec) in board.locations.get(color):
+            break
+        elif (piece.x + x_inc_y_dec, piece.y - x_inc_y_dec) in board.locations.get(other_color):
+            attacked_squares.append((piece.x + x_inc_y_dec, piece.y - x_inc_y_dec))
+            break
+        else:
+            attacked_squares.append((piece.x + x_inc_y_dec, piece.y - x_inc_y_dec))
+            x_inc_y_dec += 1
+
+    # find fourth quadrant moves
+    xy_dec = 1
+    while piece.x - xy_dec >= 1 and piece.y - xy_dec >= 1:
+        if (piece.x - xy_dec, piece.y - xy_dec) in board.locations.get(color):
+            break
+        elif (piece.x - xy_dec, piece.y - xy_dec) in board.locations.get(other_color):
+            attacked_squares.append((piece.x - xy_dec, piece.y - xy_dec))
+            break
+        else:
+            attacked_squares.append((piece.x - xy_dec, piece.y - xy_dec))
+            xy_dec += 1
+
+    return attacked_squares
+
+
+# get list of squares attacked by a king, taking into account other pieces on the board
+def get_king_attacked_squares(board, piece):
+    if not isinstance(piece, king.King):
+        return TypeError
+    color = "white" if piece.color == "white" else "black"
+    idx_changes = [-1, 0, 1]
+    return [[(piece.x + x_change, piece.y + y_change) for x_change in idx_changes
+             if 1 <= piece.x + x_change <= 8 and 1 <= piece.y + y_change <= 8 and (x_change != 0 or y_change != 0)
+             and (piece.x + x_change, piece.y + y_change) not in board.locations[color]]
+            for y_change in idx_changes]
+
+
+# get list of squares attacked by a pawn, taking into account other pieces on the board
+def get_pawn_attacked_squares(board, piece):
+    if not isinstance(piece, pawn.Pawn):
+        return TypeError
+    attacked_squares = []
+    color = "white" if piece.color == "white" else "black"
+    if 1 <= piece.x - 1 <= 8:
+        if (piece.x - 1, piece.y + 1) not in board.locations[color]:
+            attacked_squares.append((piece.x - 1, piece.y + 1))
+    if 1 <= piece.x + 1 <= 8:
+        if (piece.x - 1, piece.y + 1) not in board.locations[color]:
+            attacked_squares.append((piece.x + 1, piece.y + 1))
+    return attacked_squares
+
+
+# get list of squares attacked by a knight, taking into account other pieces on the board
+def get_knight_attacked_squares(board, piece):
+    if not isinstance(piece, knight.Knight):
+        return TypeError
+    color = "white" if piece.color == "white" else "black"
+
+    attacked_squares = [(piece.x - 2, piece.y - 1), (piece.x - 2, piece.y + 1),
+                        (piece.x - 1, piece.y - 2), (piece.x - 1, piece.y + 2),
+                        (piece.x + 1, piece.y - 2), (piece.x + 1, piece.y + 2),
+                        (piece.x + 2, piece.y - 1), (piece.x + 2, piece.y + 1)]
+    valid_moves = list(filter(lambda tup: 1 <= tup[0] <= 8 and 1 <= tup[1] <= 8 and tup not in board.locations[color],
+                              attacked_squares))
+    return valid_moves
+
+
+# class to organize each instance of a chess board
 class Board:
     # later: add move number and store each board externally so can move back and forth.
     # represent board as [][].
@@ -194,9 +358,40 @@ class Board:
         self.to_move = to_move
         self.state = state
         self.white_pieces, self.black_pieces = get_pieces(arr)
+        self.locations = {"white": {(piece.x, piece.y) for piece in self.white_pieces},  # a dict of sets of locations.
+                          "black": {(piece.x, piece.y) for piece in self.black_pieces}}
+        self.white_attacked_squares = self.get_attacked_squares()["white"]
+        self.black_attacked_squares = self.get_attacked_squares()["black"]
 
-    def move(self):
-        pass
+    # get list of squares attacked by white and by black
+    # use to check for Check and Checkmate
+    def get_attacked_squares(self):
+        white_attacked_squares = {}
+        black_attacked_squares = {}
+        for piece in self.white_pieces:
+            white_attacked_squares[piece] = self.get_piece_attacked_squares(piece)
+        for piece in self.black_pieces:
+            black_attacked_squares[piece] = self.get_piece_attacked_squares(piece)
+        return {"white": white_attacked_squares, "black": black_attacked_squares}
 
+    # get list of squares attacked by a single piece, taking into account other pieces on the board
+    # squares returned in chess notation
+    def get_piece_attacked_squares(self, piece):
+        if isinstance(piece, rook.Rook):
+            return get_rook_attacked_squares(self, piece)
+        elif isinstance(piece, bishop.Bishop):
+            return get_bishop_attacked_squares(self, piece)
+        elif isinstance(piece, queen.Queen):
+            return get_rook_attacked_squares(self, piece).extend(get_bishop_attacked_squares(self, piece))
+        elif isinstance(piece, king.King):
+            return get_king_attacked_squares(self, piece)
+        elif isinstance(piece, pawn.Pawn):
+            return get_pawn_attacked_squares(self, piece)
+        elif isinstance(piece, knight.Knight):
+            return get_knight_attacked_squares(self, piece)
+        else:
+            return TypeError("input is not a Piece instance")
+
+    # return current board score
     def get_score(self):
         return self.score

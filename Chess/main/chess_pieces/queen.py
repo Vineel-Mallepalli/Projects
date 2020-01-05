@@ -5,14 +5,9 @@ class Queen(Piece):
     # constructor same as super class, is there a way to simplify?
     def __init__(self, x_pos, y_pos, color):
         super(Queen, self).__init__(x_pos, y_pos, color)
-        self.x = x_pos
-        self.y = y_pos
-        self.color = color
         self.value = 9
 
-    # inherits draw method automatically from Piece.
-    # this method limits squares, then board will check among these.
-    # Might transfer full functionality to board later.
+    # Will transfer full functionality to board later.
     def get_valid_moves(self):
         valid_moves = []
         # first add rook moves

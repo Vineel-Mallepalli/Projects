@@ -2,14 +2,11 @@ from Chess.main.chess_pieces.piece import Piece
 
 
 class King(Piece):
-    # constructor same as super class, is there a way to simplify?
     def __init__(self, x_pos, y_pos, color):
         super(King, self).__init__(x_pos, y_pos, color)
         self.value = 0
 
-    # inherits draw method automatically from Piece.
-    # this method limits squares, then board will check among these.
-    # Might transfer full functionality to board later.
+    # Will transfer full functionality to board later.
     def get_valid_moves(self):
         # king can move one move in any direction, but cannot stay in the same square.
         valid_moves = []
