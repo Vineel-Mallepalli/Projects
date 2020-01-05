@@ -1,6 +1,5 @@
-from ChessProject.chess_pieces import bishop, king, knight, pawn, queen, rook
-from ChessProject import constants
-from ChessProject.chess_board.board import Board
+from Chess.main.chess_board.board import Board
+from Chess import constants
 
 
 class StartBoard(Board):

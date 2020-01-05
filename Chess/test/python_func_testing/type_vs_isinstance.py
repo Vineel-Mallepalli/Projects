@@ -1,4 +1,4 @@
-from ChessProject.chess_pieces import pawn, rook, knight, bishop, queen, king, piece
+from Chess.main.chess_pieces import queen, piece
 
 # using type vs. isinstance to check exact type of piece
 print(type(queen.Queen(3, 1, "white")) is queen.Queen)

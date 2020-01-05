@@ -1,4 +1,5 @@
-from ChessProject.chess_pieces import rook, knight, bishop, king, queen, pawn
+from Chess.main.chess_pieces import knight, bishop, king, queen, pawn
+from Chess.main.chess_pieces import rook
 
 START_BOARD = [[rook.Rook(1, 1, "black"), knight.Knight(2, 1, "black"), bishop.Bishop(3, 1, "black"),
                 queen.Queen(4, 1, "black"), king.King(5, 1, "black"), bishop.Bishop(6, 1, "black"),

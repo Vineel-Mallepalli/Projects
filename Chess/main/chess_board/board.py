@@ -1,6 +1,5 @@
-from ChessProject.chess_pieces import rook, knight, bishop, queen, king, pawn
-from ChessProject.chess_board.sqaure import Square
-from ChessProject import constants
+from Chess.main.chess_pieces import knight, bishop, queen, king, pawn, rook
+from Chess import constants
 from collections import Counter
 
 

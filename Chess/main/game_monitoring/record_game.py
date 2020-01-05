@@ -1,4 +1,4 @@
-from ChessProject.chess_board import start_board
+from Chess.main.chess_board import start_board
 
 
 class Game:

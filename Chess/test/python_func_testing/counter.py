@@ -1,4 +1,4 @@
-from ChessProject.chess_pieces import pawn, rook, knight, bishop, queen, king, piece
+from Chess.main.chess_pieces import pawn, knight, bishop, queen, king, rook
 from collections import Counter
 
 white_pieces = {rook.Rook(1, 1, "white"), knight.Knight(2, 1, "white"), bishop.Bishop(3, 1, "white"),

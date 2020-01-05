@@ -1,4 +1,4 @@
-from ChessProject.chess_pieces.piece import Piece
+from Chess.main.chess_pieces.piece import Piece
 
 
 class Knight(Piece):

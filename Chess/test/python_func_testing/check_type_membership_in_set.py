@@ -1,4 +1,4 @@
-from ChessProject.chess_pieces import pawn, rook, knight, bishop, queen, king, piece
+from Chess.main.chess_pieces import pawn, knight, bishop, queen, king, rook
 from collections import Counter
 
 print(["." for x in range(8)])

@@ -1,8 +1,8 @@
-from ChessProject.chess_pieces import queen, rook, pawn, bishop, knight, king
+from Chess.chess_pieces import queen, pawn, bishop, knight, king
+from Chess.main.chess_pieces import rook
 
 from collections import Counter
-
-from ChessProject.chess_board import board
+from Chess.main.chess_board import board
 
 
 def get_counts(arr):
