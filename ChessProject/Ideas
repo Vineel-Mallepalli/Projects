@@ -1,0 +1,21 @@
+Ideas to try out when desired:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Shot-down:
+
+- maintain list of attacked squares for each color in board instance (too many possible moves to keep track of)
+
+
+Last updated 01/04/2020

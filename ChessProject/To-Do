@@ -1,0 +1,31 @@
+To-Do list for reference:
+
+- write method to check if piece is pinned
+- write method to check if a move is obstructed by another piece
+- write method to add board to a Game instance, along with keeping track of move number
+- find out how to get GUI/if I need to code it
+- write test code for each method in board
+- create test code for moves by each piece in different given boards
+       - code to make sure board recognizes check and checkmate
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Last updated 01/04/2020
