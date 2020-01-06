@@ -3,7 +3,7 @@ Ideas to try out:
 - maintain dict of obstructions. format = piece: obstructing piece. When obstructing piece is moved, re-evaluate
 obstructing piece, and attacked squares for the piece.
 
-
+- should I have a way to look up a x,y and receive what piece is at that location? Yes.
 
 
 

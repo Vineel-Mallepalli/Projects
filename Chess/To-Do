@@ -1,7 +1,11 @@
 To-Do list for reference:
 
+- FIX attacked_squares methods to include calculating and maintaining obstructing pieces.
+
+
 - write method to check if piece is pinned
 - write method to check if a move is obstructed by another piece
+
 - write method to add board to a Game instance, along with keeping track of move number
 - find out how to get GUI/if I need to code it
 - write test code for each method in board
