@@ -14,5 +14,3 @@ class Piece:
     # Later: figure out GUI
     def draw(self):
         pass
-
-

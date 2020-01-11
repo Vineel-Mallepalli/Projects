@@ -405,11 +405,8 @@ def get_knight_attacked_squares_and_obstructions(board, piece):
         return TypeError
     color = "white" if piece.color == "white" else "black"
     other_color = "white" if color == "black" else "black"
+    attacked_squares = piece.get_valid_moves()
 
-    attacked_squares = [(piece.x - 2, piece.y - 1), (piece.x - 2, piece.y + 1),
-                        (piece.x - 1, piece.y - 2), (piece.x - 1, piece.y + 2),
-                        (piece.x + 1, piece.y - 2), (piece.x + 1, piece.y + 2),
-                        (piece.x + 2, piece.y - 1), (piece.x + 2, piece.y + 1)]
     obstructions = [filter(lambda tup: get_piece_at_square(
         board, tup[0], tup[1]) in board.locations[color] or tup in board.locations[other_color], attacked_squares)]
     attacked_squares = list(filter(
@@ -483,6 +480,15 @@ class Board:
             return get_knight_attacked_squares_and_obstructions(self, piece)
         else:
             return TypeError("input is not a Piece instance")
+
+    def capture(self, piece, other):
+        pass
+
+    def count_checks(self):
+        pass
+
+    # HOW to check pinned instead of creating new board? check if king's square is attacked beyond capturable piece.
+    # if capturable piece, track attacked squares behind it until get to another piece (include if opposite color).
 
     # return current board score
     def get_score(self):
