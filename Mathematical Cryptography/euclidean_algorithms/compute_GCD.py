@@ -32,13 +32,13 @@ def swap(tup):
     return None
 
 
-# print(compute_gcd(5, 0))
-# print(compute_gcd(527, 1258))
-# print(compute_gcd(228, 1056))
-# print(compute_gcd(163961, 167181))
-# print(compute_gcd(3892394, 239847))
-# print(compute_gcd(12849217045006222, 6485880443666222))
-print(12849217045006222 // 87192883)
-print(6485880443666222 // 87192883)
+print(compute_gcd(5, 0))
+print(compute_gcd(527, 1258))
+print(compute_gcd(228, 1056))
+print(compute_gcd(163961, 167181))
+print(compute_gcd(3892394, 239847))
+print(compute_gcd(12849217045006222, 6485880443666222))
+print(compute_gcd(103, 2035800))
+
 
 
