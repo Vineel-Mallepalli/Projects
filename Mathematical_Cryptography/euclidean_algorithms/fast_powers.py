@@ -49,11 +49,11 @@ def fast_power_exact(base, power):
     return result
 
 
-print(fast_power_mod(2, 4, 15))
-print(fast_power_mod(21, 36, 37))
-print(fast_power_mod(892383, 103, 2038667))
-print(fast_power_mod(317730, 810367, 2038667))
-print("")
-print(fast_power_exact(2, 4))  # Output: 16
-print(fast_power_exact(3, 4))  # Output: 81
-print(fast_power_exact(2, 100))  # Output: 976371285
+# print(fast_power_mod(2, 4, 15))
+# print(fast_power_mod(21, 36, 37))
+# print(fast_power_mod(892383, 103, 2038667))
+# print(fast_power_mod(317730, 810367, 2038667))
+# print("")
+# print(fast_power_exact(2, 4))  # Output: 16
+# print(fast_power_exact(3, 4))  # Output: 81
+# print(fast_power_exact(2, 100))  # Output: 976371285

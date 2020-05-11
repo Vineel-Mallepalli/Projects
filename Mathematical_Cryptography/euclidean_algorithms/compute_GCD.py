@@ -1,3 +1,7 @@
+from randomTestpkg import solve_quadratic
+from Mathematical_Cryptography.euclidean_algorithms import fast_powers
+
+
 def compute_gcd(a, b):
     if a < 0 or b < 0:
         return None
@@ -32,13 +36,28 @@ def swap(tup):
     return None
 
 
-print(compute_gcd(5, 0))
-print(compute_gcd(527, 1258))
-print(compute_gcd(228, 1056))
-print(compute_gcd(163961, 167181))
-print(compute_gcd(3892394, 239847))
-print(compute_gcd(12849217045006222, 6485880443666222))
-print(compute_gcd(103, 2035800))
+def has_inverse(a, p):
+    if compute_gcd(a, p)[0] == 1:
+        return True
+    return False
 
+
+def compute_inverse(a, p):
+    if not has_inverse(a, p):
+        return -1
+    b = 1
+    while b < p:
+        if (a * b) % p == 1:
+            return b
+        b += 1
+    return -1
+
+
+# print(compute_gcd(5, 0))
+# print(compute_gcd(12849217045006222, 6485880443666222))
+# print(compute_inverse(3, 11))
+# print(compute_inverse(4, 7))
+print(compute_inverse(4392, 8387))
+print((2683 * 26560) % 8387)
 
 

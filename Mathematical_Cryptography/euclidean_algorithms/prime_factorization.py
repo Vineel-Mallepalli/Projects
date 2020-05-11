@@ -33,7 +33,10 @@ def is_prime(n):
     return True
 
 
-print(prime_factorize(5))
-print(prime_factorize(25))
-print(prime_factorize(174385766))
+print(prime_factorize(384))
+# print(prime_factorize(5))
+# print(prime_factorize(25))
+# print(prime_factorize(6916))
+# print(prime_factorize(6000))
+# print(prime_factorize(174385766))
 
