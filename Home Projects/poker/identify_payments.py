@@ -24,7 +24,9 @@ def get_data():
             return
         df.rename(columns={list(df)[0]: "Name"}, inplace=True)
     df_trunc = df[["Name", "Net"]]  # new dataframe with only player names, net amounts
-    df_trunc = df_trunc.reindex(df_trunc["Net"].abs().sort_values(ascending=False).index)
+    print(df_trunc)
+    df_trunc = df_trunc.reindex(df_trunc["Net"].sort_values().index)
+    print(df_trunc)
     names = [i for i in df_trunc["Name"].tolist()]
     nets = [Decimal(j).quantize(Decimal(".01"), rounding=ROUND_HALF_UP) for j in df_trunc["Net"].tolist()]
     if sum(nets) != 0:
@@ -42,6 +44,7 @@ def get_data():
     writer = pd.ExcelWriter(directory + "Results" + filename)
     out_df.to_excel(writer, 'Sheet1', index=False)
     writer.save()
+    print("Number of Transactions = " + str(len(instructions)))
     return
 
 
@@ -58,8 +61,8 @@ def apply_alg(nets):
             payers.append(i)
         else:
             receivers.append(i)
-    payers.sort()
-    receivers.sort()
+    # payers.sort()
+    # receivers.sort()
     curr_rec = 0
     for payer in payers:
         payout = [payer, []]
