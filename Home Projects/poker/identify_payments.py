@@ -25,7 +25,7 @@ def get_data():
         df.rename(columns={list(df)[0]: "Name"}, inplace=True)
     df_trunc = df[["Name", "Net"]]  # new dataframe with only player names, net amounts
     print(df_trunc)
-    df_trunc = df_trunc.reindex(df_trunc["Net"].sort_values().index)
+    df_trunc = df_trunc.reindex(df_trunc["Net"].abs().sort_values(ascending=False).index)
     print(df_trunc)
     names = [i for i in df_trunc["Name"].tolist()]
     nets = [Decimal(j).quantize(Decimal(".01"), rounding=ROUND_HALF_UP) for j in df_trunc["Net"].tolist()]
