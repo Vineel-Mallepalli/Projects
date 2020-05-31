@@ -4,6 +4,38 @@ import pandas as pd
 import os
 
 
+# Does not require list to be sorted, but helps with efficiency.
+# Requires: list amounts are net-zero
+def apply_alg(nets):
+    if not nets or len(nets) == 0:
+        return []
+    payers = []
+    receivers = []
+    payouts = []
+    for i in range(len(nets)):
+        if nets[i] <= 0:
+            payers.append(i)
+        else:
+            receivers.append(i)
+    curr_rec = 0
+    for payer in payers:
+        payout = [payer, []]
+        payer_amt = -1 * nets[payer]
+        while payer_amt != 0:
+            if payer_amt <= nets[receivers[curr_rec]]:
+                payout[1].append((receivers[curr_rec], payer_amt))
+                nets[receivers[curr_rec]] -= payer_amt
+                payer_amt -= payer_amt
+            else:
+                payout[1].append((receivers[curr_rec], nets[receivers[curr_rec]]))
+                payer_amt -= nets[receivers[curr_rec]]
+                nets[receivers[curr_rec]] -= nets[receivers[curr_rec]]
+            if nets[receivers[curr_rec]] == 0:
+                curr_rec += 1
+        payouts.append(payout)
+    return payouts
+
+
 # Parse result data from poker2 app and write instructions to excel file.
 # Assumption: if no "Name" column, first column of data contains player names
 # Requires: "Net" column
@@ -52,12 +84,10 @@ def get_data_poker2(path=""):
 
 
 def condense_player_net_dict(player_net_dict):
-    # print("Before: ", player_net_dict)
     new_player_net_dict = defaultdict(lambda: (0, False))
     for player, amt_status_tup in player_net_dict.items():
         new_player_net_dict[player.partition(" @")[0]] = new_player_net_dict[player.partition(" @")[0]][0] + \
                                                          amt_status_tup[0], amt_status_tup[1]
-    # print("After: ", new_player_net_dict)
     return new_player_net_dict
 
 
@@ -75,22 +105,27 @@ def get_data_pokernow(path=""):
     assert os.path.exists(path), "No file could be discovered at " + path
     csv = pd.read_csv(path)
     game_history = list(csv[csv.keys()[0]])
-    buy_in_out_list = [event for event in game_history
-                       if "quits the game" in event or "created the game" in event or "approved the player" in event]
+    buy_in_out_list = [event for event in game_history if "quits the game" in event
+                       or "created the game" in event or "approved the player" in event or "updated the " in event]
     # print(buy_in_out_list, len(buy_in_out_list), sep="\n")
     # print([event for event in buy_in_out_list if "vaid" in event])
-    player_net_dict = defaultdict(lambda: (0, False))  # player : tuple(net, has_quit)
+    player_net_dict = defaultdict(lambda: (0, False))  # player : tuple(net, quit_status)
     for i in range(len(buy_in_out_list) - 1, -1, -1):
         buy_in_out_event = buy_in_out_list[i]
         earnings = 1 if "quits the" in buy_in_out_event else -1
         quitting = True if "quits the" in buy_in_out_event else False
+        updating = True if "updated the " in buy_in_out_event else False
         amount = int(buy_in_out_event.rsplit(" ", 1)[-1][:-1])
         player = buy_in_out_event.split("\"")[1]
-        # check what happens if player has quit before but is now buying back in. does NOT provide player a new @ hash.
         if player_net_dict[player][1] and quitting:  # error check: player has already quit and is trying to quit again.
             print("Error: player %s has quit and is now performing %s event %d" % (player, buy_in_out_event, i))
             return
-        player_net_dict[player] = player_net_dict[player][0] + earnings * amount, quitting
+        if updating:
+            split = buy_in_out_event.rsplit(" ", 3)
+            old_amt, new_amt = int(split[1]), int(split[3][:-1])
+            player_net_dict[player] = player_net_dict[player][0] - (new_amt - old_amt), quitting
+        else:
+            player_net_dict[player] = player_net_dict[player][0] + earnings * amount, quitting
     player_net_dict = condense_player_net_dict(player_net_dict)
     instructions = []
     for player, amount_status_tup in player_net_dict.items():
@@ -105,38 +140,6 @@ def get_data_pokernow(path=""):
                                 % (player, amount_status_tup[0]))
     print(*order_instructions(instructions), sep="\n")
     return
-
-
-# Does not require list to be sorted, but helps with efficiency.
-# Requires: list amounts are net-zero
-def apply_alg(nets):
-    if not nets or len(nets) == 0:
-        return []
-    payers = []
-    receivers = []
-    payouts = []
-    for i in range(len(nets)):
-        if nets[i] <= 0:
-            payers.append(i)
-        else:
-            receivers.append(i)
-    curr_rec = 0
-    for payer in payers:
-        payout = [payer, []]
-        payer_amt = -1 * nets[payer]
-        while payer_amt != 0:
-            if payer_amt <= nets[receivers[curr_rec]]:
-                payout[1].append((receivers[curr_rec], payer_amt))
-                nets[receivers[curr_rec]] -= payer_amt
-                payer_amt -= payer_amt
-            else:
-                payout[1].append((receivers[curr_rec], nets[receivers[curr_rec]]))
-                payer_amt -= nets[receivers[curr_rec]]
-                nets[receivers[curr_rec]] -= nets[receivers[curr_rec]]
-            if nets[receivers[curr_rec]] == 0:
-                curr_rec += 1
-        payouts.append(payout)
-    return payouts
 
 
 def single_banker(player_data):
@@ -171,7 +174,7 @@ def single_banker(player_data):
 
 
 get_data_pokernow("C:\\Users\\vinee\\PycharmProjects\\Home Projects\\poker\\poker_test_log_2.csv")
-data = "Vineel = 10 70.75; Liam = 20 9.20; Muthu = 20 10.28; Will = 20 0; Eric = 7 13.03; Varun = 20 1.62; " \
-       "Vaidya = 10 3.36; Cole = 10 15.90; Nolan = 7 paid; Liam = 35 0; Vineel = 15 51.69; Cole = 30 29.75; " \
-       "Will = 15 31.94; Connor = 10 10.62; Jacob = 10 1.0; Vaidya = 10 0;"
+# data = "Vineel = 10 70.75; Liam = 20 9.20; Muthu = 20 10.28; Will = 20 0; Eric = 7 13.03; Varun = 20 1.62; " \
+#        "Vaidya = 10 3.36; Cole = 10 15.90; Nolan = 7 paid; Liam = 35 0; Vineel = 15 51.69; Cole = 30 29.75; " \
+#        "Will = 15 31.94; Connor = 10 10.62; Jacob = 10 1.0; Vaidya = 10 0;"
 # single_banker(data)
