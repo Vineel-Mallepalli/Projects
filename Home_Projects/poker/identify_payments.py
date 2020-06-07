@@ -1,5 +1,9 @@
 from decimal import *
 from _collections import defaultdict
+from requests import get
+from bs4 import BeautifulSoup
+import json
+
 import pandas as pd
 import os
 
@@ -39,7 +43,7 @@ def apply_alg(nets):
 # Parse result data from poker2 app and write instructions to excel file.
 # Assumption: if no "Name" column, first column of data contains player names
 # Requires: "Net" column
-def get_data_poker2(path=""):
+def parse_log_poker2(path=""):
     getcontext().prec = 106
     if path == "":
         path = input("Enter the path of your file: ")
@@ -98,33 +102,80 @@ def order_instructions(instructions):
     return new_instructions
 
 
-# need to check what log and program do if owner manually changes player's stack.
-def get_data_pokernow(path=""):
+# noinspection PyArgumentList
+def parse_log_pokernow(url="", path=""):
+    if url != "":  # download log file from url, save locally, and record saved path.
+        if url[-1] != '/':
+            url += '/'
+        url += "log?after_at=&before_at=&mm=false"
+        print(url)
+        headers = {'authority': 'www.pokernow.club', 'method': 'GET',
+                   'path': '/games/X9_g14w8Lh5C0FWBWiOcU0KCI/log?after_at=&before_at=&mm=false', 'scheme': 'https',
+                   'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,'
+                             'application/signed-exchange;v=b3;q=0.9',
+                   'accept-encoding': 'gzip, deflate, br', 'accept-language': 'en-US,en;q=0.9,la;q=0.8',
+                   'cache-control': 'max-age=0', 'cookie': '_ga=GA1.2.950321394.1584684318; '
+                                                           'npt=0UOAghgzdRJUrFy8jyWS7Es7_VFRFwyHd9vcOajxyqQXlzYfjE; '
+                                                           '_gid=GA1.2.38041500.1591509743',
+                   'if-none-match': 'W/"2a5d-wIKyH1EWNp0ckVm8/tdeEbzF/gc"', 'sec-fetch-dest': 'document',
+                   'sec-fetch-mode': 'navigate', 'sec-fetch-site': 'none', 'sec-fetch-user': '?1',
+                   'upgrade-insecure-requests': '1',
+                   'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) '
+                                 'Chrome/81.0.4044.138 Safari/537.36'}
+        r = get(url, stream=True, headers=headers)
+        print(r.headers)
+        print(r.content)
+        print(json.detect_encoding(r.content))
+        print(len(r.content))
+        soup = BeautifulSoup(r.content, 'html.parser')
+        print(soup.findAll(text=True))
+
+        # links = soup.findAll('a')
+        # csv_links = [url + link['href'] for link in links]
+        # print(csv_links)
+        return
+
+    # obtain path if not given, and read file at given path
     if path == "":
         path = input("Enter the path of your file: ")
     assert os.path.exists(path), "No file could be discovered at " + path
     csv = pd.read_csv(path)
     game_history = list(csv[csv.keys()[0]])
-    buy_in_out_list = [event for event in game_history if "quits the game" in event
-                       or "created the game" in event or "approved the player" in event or "updated the " in event]
-    # print(buy_in_out_list, len(buy_in_out_list), sep="\n")
-    # print([event for event in buy_in_out_list if "vaid" in event])
-    player_net_dict = defaultdict(lambda: (0, False))  # player : tuple(net, quit_status)
+    # identify only cash-in/out events
+    buy_in_out_list = [event for event in game_history if "quits the game" in event or "created the game" in event
+                       or "approved the player" in event or "updated the " in event
+                       or "stand up" in event or "sit back" in event or "admin queued the " in event]
+    print(buy_in_out_list, len(buy_in_out_list), sep="\n")
+    print([event for event in buy_in_out_list if "connahh " in event])
+    player_net_dict = defaultdict(lambda: (0, False))  # format = player : tuple(net, quit_status)
     for i in range(len(buy_in_out_list) - 1, -1, -1):
         buy_in_out_event = buy_in_out_list[i]
         earnings = 1 if "quits the" in buy_in_out_event else -1
+        rebuying = True if "approved the" in buy_in_out_event else False
+        standing = True if "stand up" in buy_in_out_event else False
+        sitting = True if "sit back" in buy_in_out_event else False
+        queued_update = True if "admin queued the " in buy_in_out_event else False
         quitting = True if "quits the" in buy_in_out_event else False
         updating = True if "updated the " in buy_in_out_event else False
-        amount = int(buy_in_out_event.rsplit(" ", 1)[-1][:-1])
         player = buy_in_out_event.split("\"")[1]
-        if player_net_dict[player][1] and quitting:  # error check: player has already quit and is trying to quit again.
-            print("Error: player %s has quit and is now performing %s event %d" % (player, buy_in_out_event, i))
-            return
-        if updating:
+        # if player[:6] == "connah":
+        #     print(player, player_net_dict[player], quitting, buy_in_out_event)
+        if queued_update:  # potential error: player stack was modified while in play.
+            print("%s event %d." % (buy_in_out_event, i))
+            continue
+        if updating:  # adjust player stack if owner manually updates it
             split = buy_in_out_event.rsplit(" ", 3)
             old_amt, new_amt = int(split[1]), int(split[3][:-1])
             player_net_dict[player] = player_net_dict[player][0] - (new_amt - old_amt), quitting
-        else:
+            continue
+        amount = int(buy_in_out_event.rsplit(" ", 1)[-1][:-1])
+        if standing:  # set quit_status to true
+            player_net_dict[player] = player_net_dict[player][0] + amount, True
+            continue
+        if sitting:
+            player_net_dict[player] = player_net_dict[player][0] - amount, False
+            continue
+        if rebuying or not player_net_dict[player][1]:
             player_net_dict[player] = player_net_dict[player][0] + earnings * amount, quitting
     player_net_dict = condense_player_net_dict(player_net_dict)
     instructions = []
@@ -173,8 +224,14 @@ def single_banker(player_data):
     return
 
 
-get_data_pokernow("C:\\Users\\vinee\\PycharmProjects\\Home Projects\\poker\\poker_test_log_2.csv")
+parse_log_pokernow(url="https://www.pokernow.club/games/X9_g14w8Lh5C0FWBWiOcU0KCI")
+# path="C:\\Users\\vinee\\PycharmProjects\\Home_Projects\\poker"
+#      "\\poker_now_log_1kiOADt36erZKUvuixvj5f58N (5).csv")
 # data = "Vineel = 10 70.75; Liam = 20 9.20; Muthu = 20 10.28; Will = 20 0; Eric = 7 13.03; Varun = 20 1.62; " \
 #        "Vaidya = 10 3.36; Cole = 10 15.90; Nolan = 7 paid; Liam = 35 0; Vineel = 15 51.69; Cole = 30 29.75; " \
 #        "Will = 15 31.94; Connor = 10 10.62; Jacob = 10 1.0; Vaidya = 10 0;"
 # single_banker(data)
+# <button class="button-1 show-log-button small-button dark-gray" type="button">Log</button>
+# <button type="button" class="button-1 green small-button">Download Full Log</button>
+# https://www.pokernow.club/games/lO84l_qsLt0THXYxJW4dlsvpo/log?after_at=&before_at=&mm=false
+# https://www.pokernow.club/games/lO84l_qsLt0THXYxJW4dlsvpo/log?after_at=&before_at=&mm=false
