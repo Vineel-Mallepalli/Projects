@@ -104,31 +104,43 @@ def order_instructions(instructions):
 
 # noinspection PyArgumentList
 def parse_log_pokernow(url="", path=""):
+    # if url[:8] != 'https://':
+    #     print("ERROR: provided url does not begin with 'https://'")
+    #     return
+    # partition = url[8:].partition('/')
+    # print("Partition: " + str(partition))
+    # path = '/' + partition[2] + '/log?after_at=&before_at=&mm=false'
+    # print("Path: " + path)
+    # Path: /games/X9_g14w8Lh5C0FWBWiOcU0KCI/log?after_at=&before_at=&mm=false
     if url != "":  # download log file from url, save locally, and record saved path.
         if url[-1] != '/':
             url += '/'
         url += "log?after_at=&before_at=&mm=false"
         print(url)
+        # LOL remove if-none-match header and it works! RIP only if website still works in browser. time limit>
+        # which headers are variable across time, games, devices ???
         headers = {'authority': 'www.pokernow.club', 'method': 'GET',
                    'path': '/games/X9_g14w8Lh5C0FWBWiOcU0KCI/log?after_at=&before_at=&mm=false', 'scheme': 'https',
                    'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,'
                              'application/signed-exchange;v=b3;q=0.9',
                    'accept-encoding': 'gzip, deflate, br', 'accept-language': 'en-US,en;q=0.9,la;q=0.8',
-                   'cache-control': 'max-age=0', 'cookie': '_ga=GA1.2.950321394.1584684318; '
-                                                           'npt=0UOAghgzdRJUrFy8jyWS7Es7_VFRFwyHd9vcOajxyqQXlzYfjE; '
+                   'cache-control': 'max-age=0',
+                   'cookie': '_ga=GA1.2.950321394.1584684318; npt=0UOAghgzdRJUrFy8jyWS7Es7_VFRFwyHd9vcOajxyqQXlzYfjE; '
                                                            '_gid=GA1.2.38041500.1591509743',
-                   'if-none-match': 'W/"2a5d-wIKyH1EWNp0ckVm8/tdeEbzF/gc"', 'sec-fetch-dest': 'document',
+                   # 'if-none-match': 'W/"2cd7-bIjRNkdg9Hyq+FLIxgYKUAN6eeQ"',
+                   'sec-fetch-dest': 'document',
                    'sec-fetch-mode': 'navigate', 'sec-fetch-site': 'none', 'sec-fetch-user': '?1',
                    'upgrade-insecure-requests': '1',
                    'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) '
                                  'Chrome/81.0.4044.138 Safari/537.36'}
-        r = get(url, stream=True, headers=headers)
+        r = get(url, headers=headers)  # stream = True ?
         print(r.headers)
         print(r.content)
         print(json.detect_encoding(r.content))
         print(len(r.content))
         soup = BeautifulSoup(r.content, 'html.parser')
         print(soup.findAll(text=True))
+
 
         # links = soup.findAll('a')
         # csv_links = [url + link['href'] for link in links]
