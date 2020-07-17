@@ -5,4 +5,3 @@
 def display_range(range):
     if len(range) != 2:
         return
-    
